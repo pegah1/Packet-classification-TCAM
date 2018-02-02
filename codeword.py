@@ -2,7 +2,8 @@ import math
 import string
 from collections import OrderedDict
 from operator import itemgetter
-
+import codecs
+import unicodedata
 
 remaine0="00000000000000000000000000000000"
 remaine1="11111111111111111111111111111111"
@@ -12,14 +13,17 @@ element_region={}   #collection of ERs for all rules
 
 def read_file(): # read the rules file
         
-        fr = open("rules.txt", "rb")
+        fr = codecs.open("rules.txt", 'r')
         #index=1
         for line in fr: #read file contains the rules
                 c = line[:len(line)].split(',')
                 c[0]= c[0].strip()
+                #print c[0]
                 c[1]= c[1].strip()
+                #print c[1]
                 index = int(c[2].strip()[12:])+1
                 index=index-1
+                #print index
                 
                 Net=[]
                 for i in range(2):
@@ -28,6 +32,7 @@ def read_file(): # read the rules file
                         netmask = int(netmask) + 1
                         netmask = netmask - 1
                         ip = c[i][:slash]
+                        #print type(ip)
                         ip = (''.join([bin(int(x) + 256)[3:] for x in ip.split('.')])) #convert to binary
                         Net.append([int(ip[:netmask]+remaine0[:32-netmask],2),int(ip[:netmask]+remaine1[:32-netmask],2)]) #convert to decimal
                 network[index] = Net 
@@ -190,6 +195,7 @@ def merge_hypercube(inp1,inp2):
         
 def make_hypercube(inp,index):
         tmp=[]
+        #print "1"
         #print inp
         #print index
         a=inp[index][1] #remove reiterative ER
@@ -234,6 +240,7 @@ def hyper_cube(inp):
         while True:     #make hypercube
                 while (len(hyperCubeMax[0]) == len(hyperCubeMax[1])):
                         hyperCubeMax[0]=merge_hypercube(hyperCubeMax[0],hyperCubeMax[1])
+                        #print hyperCubeMax[0]
                         hyperCubeMax.pop()
                         index+=1
                         if index == len(inp):
@@ -254,6 +261,7 @@ def hyper_cube(inp):
                 hyperCubeMax.pop()
                 #print hyperCubeMax[0]
                 
+        #print hyperCubeMax[0]
         return hyperCubeMax[0]
 
 def sort_ER_length():        
@@ -277,8 +285,10 @@ def sort_ER_length():
         return ruleER
 
 def code_word(inp):
+        #print inp
         extention=[]
         ER=[None]*(len(inp))                    #ER -> define scale
+        #print len(ER)
         ruleER=[None]*(len(network)+1)          #rule -> colection of ERs
         ruleCW=[None]*(len(network)+1)          #rule -> code word          
         
@@ -286,6 +296,7 @@ def code_word(inp):
                 tmp=[]
                 for key1,value1 in value.items():
                         tmp.append(value1[0])
+                        #print value1
                         if key1!=key:   ER[value1[0]]=[value1[2],value1[3]]
                         if (key==key1 and value1[2]==False): ER[value1[0]]=network[key] 
                 ruleER[key]=tmp
@@ -296,6 +307,7 @@ def code_word(inp):
                 if len(ruleER[i])>1:
                         for j in range(1,len(ruleER[i])):
                                 for k in range(len(inp[ruleER[i][j]][1])):
+                                        #print inp[ruleER[i][j]][1]
                                         if ruleCW[i][k]!= inp[ruleER[i][j]][1][k]: ruleCW[i] = ruleCW[i][:k]+'*'+ruleCW[i][k+1:]
                         
         #print "scale of each element region:"
@@ -334,8 +346,8 @@ def main():
                         index = int(i[0])+1
                         index=index-1
                         CodeWord[index]=(i[0],'1'+i[1])
-        CodeWord = CodeWord[:51]
-
+        CodeWord = CodeWord[:]
+        #print CodeWord
         out= code_word(CodeWord)            #make code word for each rule
         ruleCW = out[0]
         scaleER = out[1]
